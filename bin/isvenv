@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ -z "${VIRTUAL_ENV}" ]
+then
+  exit 1
+fi
+echo $VIRTUAL_ENV

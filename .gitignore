@@ -1,2 +1,8 @@
+# Config
 .env
+
+# Logs
 *.log
+
+# Python virtual env
+.venv
