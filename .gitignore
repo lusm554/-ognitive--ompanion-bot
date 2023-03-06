@@ -6,3 +6,6 @@
 
 # Python virtual env
 .venv
+
+# VIM
+*.swp
