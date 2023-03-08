@@ -1,9 +1,0 @@
-Convert this text to a programmatic command:
-
-Example: скинь расписание на понедельник
-monday_schedule
-
-Example: какое расписание на пятницу?
-friday_schedule
-
-Какое расписание на вторник?
