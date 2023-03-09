@@ -1,0 +1,19 @@
+Convert text below to a programmatic command. If you don't know what response, then response "IDK_STOP_USING_ME_AS_A_SLAVE".
+
+Какое расписание на пятницу?
+friday_schedule
+
+Какое расписание на вторник?
+tuesday_schedule
+
+Скинь расписание на понедельник
+monday_schedule
+
+Дай расписание на среду
+wednesday_schedule
+
+Какое расписание на второй день недели
+tuesday_schedule
+
+Какое расписание на третий день недели?
+wednesday_schedule

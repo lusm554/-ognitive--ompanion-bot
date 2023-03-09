@@ -5,8 +5,7 @@ import openai
 chatgpt = os.getenv("CHAT_GPT_API_KEY", None)
 openai.api_key = chatgpt
 
-def gen_response(prompt):
-    model_engine = "text-davinci-003"
+def gen_response(prompt, model_engine="text-davinci-003"):
     prompt = (f"{prompt}")
     completions = openai.Completion.create(
         engine=model_engine,
@@ -20,32 +19,14 @@ def gen_response(prompt):
     return message.strip() 
 
 if __name__ == '__main__':
-    input_text = """
-    Convert this text to a programmatic command:
+    ADA_MODEL = "text-davinci-002"
+    with open("traning-data.txt", "r") as training_data_f:
+        training_data = training_data_f.read()
+        prompt = training_data + "\n\n" + input("Input: ")
+        completion = gen_response(prompt, model_engine=ADA_MODEL)
 
-    Example: скинь расписание на понедельник
-    monday_schedule
+        print_block = lambda title, body: print(f"{title}\n{'*' * 40}\n{body}\n{'*'*40}")
+        print_block("Input", prompt)
+        print()
+        print_block("Response", repr(completion))
 
-    Example: какое расписание на пятницу?
-    friday_schedule
-
-    Какое расписание на вторник?
-    """
-    resp = gen_response(input_text)
-    print(f"Input: {input_text}")
-    print(f"Response: {resp}")
-    # Response example
-    """
-    Input: 
-        Convert this text to a programmatic command:
-
-        Example: скинь расписание на понедельник
-        monday_schedule
-
-        Example: какое расписание на пятницу?
-        friday_schedule
-
-        Какое расписание на вторник?
-        
-    Response: tuesday_schedule
-    """
