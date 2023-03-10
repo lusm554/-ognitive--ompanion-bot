@@ -4,7 +4,8 @@
 # Logs
 *.log
 
-# Python virtual env
+# Python 
+__pycache__
 .venv
 
 # VIM
