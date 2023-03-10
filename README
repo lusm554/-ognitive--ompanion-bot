@@ -1,1 +1,19 @@
-Here telegram bot using chat gpt API
+Here telegram bot using chat gpt API.
+
+
+Example of bot structure with MVC:
+bot/
+    __init__.py
+    config.py
+    controller/
+        __init__.py
+        base_controller.py
+        message_controller.py
+    model/
+        __init__.py
+        base_model.py
+        message_model.py
+    view/
+        __init__.py
+        base_view.py
+        message_view.py
