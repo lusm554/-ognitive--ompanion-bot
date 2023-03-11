@@ -1,3 +1,5 @@
+from exceptions import DatabaseError
+
 class ChatBotModel:
   def __init__(self):
     self.commands = ("start", "help", "end")
@@ -19,7 +21,11 @@ class ChatBotModel:
         return "Please start the conversation using the /start command."
     elif self.state == "active":
       if cmd:
-        return f"Grats, u run {cmd} command!"
+        try:
+          raise ValueError("hello") 
+          return f"Grats, u run {cmd} command!"
+        except Exception as e:
+          raise DatabaseError("Cannot fetch info for command") from e
       else:
         return self.ask_question()
 

@@ -1,6 +1,7 @@
 from model.example_model import ChatBotModel
 from view.example_view import ChatBotView
 from controller.example_controller import ChatBotController
+import logging
 
 #model = ChatBotModel()
 #print(model)
@@ -11,9 +12,11 @@ from controller.example_controller import ChatBotController
 #controller = ChatBotController()
 #print(controller)
 
-bot = ChatBotController()
-bot.handle_message("hello")
-bot.handle_message("start")
-bot.handle_message("end")
-bot.handle_message("help")
-
+try:
+  bot = ChatBotController()
+  bot.handle_message("hello")
+  bot.handle_message("start")
+  bot.handle_message("end")
+  bot.handle_message("help")
+except Exception as e:
+  logging.exception(e)
