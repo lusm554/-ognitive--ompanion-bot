@@ -21,7 +21,7 @@ class ChatBotModel:
       if cmd:
         return f"Grats, u run {cmd} command!"
       else:
-        self.ask_question()
+        return self.ask_question()
 
   def ask_question(self):
     return "What would you like to know? Type '/help' for the list of available commands."
