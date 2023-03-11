@@ -1,0 +1,1 @@
+HHere the "Data Access Object" (DAO) pattern is used, which allows us to abstract from a specific database and work with data through a unified interface.
