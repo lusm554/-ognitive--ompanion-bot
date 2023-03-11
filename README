@@ -1,19 +1,44 @@
-Here telegram bot using chat gpt API.
+THIS BRANCH IS EXAMPLE! 
 
+Here example of how bot can work in mvc pattern.
+Structure of base example:
+.
+├── .env
+├── .git
+├── .gitignore
+├── .venv
+├── README
+├── bin
+│   ├── isvenv
+│   ├── run-from-env.sh
+│   └── test.sh
+├── bot
+│   ├── __init__.py
+│   ├── config.py
+│   ├── controller
+│   │   ├── README
+│   │   ├── __init__.py
+│   │   └── example_controller.py
+│   ├── log.py
+│   ├── main.py
+│   ├── model
+│   │   ├── README
+│   │   ├── __init__.py
+│   │   └── example_model.py
+│   ├── telegram-frontend
+│   │   └── README
+│   └── view
+│       ├── README
+│       ├── __init__.py
+│       └── example_view.py
+├── examples
+│   ├── image-gen.py
+│   ├── simple-fine-tuning.py
+│   └── traning-data.txt
+├── pytest.ini
+├── requirements.txt
+└── test
+    ├── README
+    ├── __init__.py
+    └── test_example_model.py
 
-Example of bot structure with MVC:
-bot/
-    __init__.py
-    config.py
-    controller/
-        __init__.py
-        base_controller.py
-        message_controller.py
-    model/
-        __init__.py
-        base_model.py
-        message_model.py
-    view/
-        __init__.py
-        base_view.py
-        message_view.py
