@@ -1,6 +1,9 @@
 # Config
 .env
 
+# notes
+business_reqs.txt
+
 # Logs
 *.log
 
