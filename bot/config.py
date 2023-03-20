@@ -1,14 +1,17 @@
-"""
-All dynamic bot settings are defined here.
-"""
+from exceptions import MissingEnvironmentVariable
+import dotenv
+import os
+
+dotenv.load_dotenv()
 
 class DatabaseBase:
-  TABLE_USERS = "users" 
-  TABLE_TASKS = "tasks" 
-  # in future
-  #TABLE_BOARDS =
-  #TABLE_LISTS =
+  DBNAME = "postgres"
 
-class SQLiteDatabaseConfig(DatabaseBase):
-  DB_FILE_NAME = "task-tracker.db"
-
+class PostgresDatabaseConfig(DatabaseBase):
+  try:
+    USER = os.environ["USER"]
+    PORT = os.environ["PORT"]
+    HOST = os.environ["HOST"]
+    PASSWORD = os.environ["PASSWORD"]
+  except KeyError as keyname:
+    raise MissingEnvironmentVariable(f"Variable {keyname} not found.")
