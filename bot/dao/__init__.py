@@ -1,1 +1,1 @@
-from .abc_dao import conn
+from .abc_dao import UserDAO

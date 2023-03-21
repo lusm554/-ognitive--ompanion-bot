@@ -58,9 +58,3 @@ CREATE TABLE IF NOT EXISTS TASKS (
   FOREIGN KEY (assigned_to) REFERENCES USERS (user_id)
 );
 CREATE INDEX IF NOT EXISTS tasks_index on TASKS (list_id, owner_id, assigned_to);
-
-SELECT table_name 
-FROM information_schema.tables 
-WHERE 
-  table_schema = 'public';
-

@@ -9,9 +9,9 @@ class DatabaseBase:
 
 class PostgresDatabaseConfig(DatabaseBase):
   try:
-    USER = os.environ["USER"]
-    PORT = os.environ["PORT"]
-    HOST = os.environ["HOST"]
-    PASSWORD = os.environ["PASSWORD"]
+    USER = os.environ["POSTGRES_USER"]
+    PORT = os.environ["POSTGRES_PORT"]
+    HOST = os.environ["POSTGRES_HOST"]
+    PASSWORD = os.environ["POSTGRES_PASSWORD"]
   except KeyError as keyname:
     raise MissingEnvironmentVariable(f"Variable {keyname} not found.")
