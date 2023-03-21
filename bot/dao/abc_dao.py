@@ -1,6 +1,4 @@
-from abc import ABC
-
-class UserDAO(ABC):
+class UserDAO():
   def __init__(self, db_connection):
     self.conn = db_connection
   
@@ -20,14 +18,14 @@ class UserDAO(ABC):
       """)
       return cur.fetchall()
 
-class BoardDAO(ABC):
+class BoardDAO():
   ...
 
-class BoardPermissionDAO(ABC):
+class BoardPermissionDAO():
   ...
 
-class ListDAO(ABC):
+class ListDAO():
   ...
 
-class TaskDAO(ABC):
+class TaskDAO():
   ...

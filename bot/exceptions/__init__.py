@@ -1,5 +1,5 @@
 class DatabaseError(Exception):
-  """Describes error """
+  """Describes error while interacting with DataBase."""
   pass
 
 class MissingEnvironmentVariable(Exception):
