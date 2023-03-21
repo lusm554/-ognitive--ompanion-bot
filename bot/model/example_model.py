@@ -1,12 +1,8 @@
-from exceptions import DatabaseError
-from dao import conn
-
 class ChatBotModel:
   def __init__(self):
     self.commands = ("start", "help", "end")
     self.command_prefix = "/"
     self.state = "inactive"
-    print(conn)
 
   def recognize_command(self, message):
     if message in self.commands:
@@ -23,10 +19,7 @@ class ChatBotModel:
         return "Please start the conversation using the /start command."
     elif self.state == "active":
       if cmd:
-        try:
-          return f"Grats, u run {cmd} command!"
-        except Exception as e:
-          raise DatabaseError("Cannot fetch info for command") from e
+        return f"Grats, u run {cmd} command!"
       else:
         return self.ask_question()
 
