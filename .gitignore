@@ -2,7 +2,7 @@
 .env
 
 # notes
-business_reqs.txt
+*.txt
 
 # Logs
 *.log
