@@ -49,3 +49,9 @@ with Session(engine) as session:
     print(row)
 
 
+squidward = User(name="squidward", fullname="Squidward Tentacles")
+krabs = User(name="ehkrabs", fullname="Eugene H. Krabs")
+with Session(engine) as session:
+	session.add(squidward)
+	session.add(krabs)
+	session.commit()
