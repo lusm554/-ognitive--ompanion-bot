@@ -1,30 +1,49 @@
-import psycopg2 
+from sqlalchemy import URL
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase
 from exceptions import DatabaseError
 
-class PostgresDB:
-  def __init__(self, user, password, dbname, host, port):
-    self.password = password
-    self.host = host
-    self.port = port
-    self.user = user
-    self.dbname = dbname
-    self._connection = None
+# TODO: as in `get_session` actual connection does not open, need to find where we can catch connection errors.
 
-  def get_connection(self) -> psycopg2.extensions.connection:
-    try:
-      connection = psycopg2.connect(
-        password=self.password,
-        host=self.host,
-        port=self.port,
-        user=self.user,
-        dbname=self.dbname
+class PostgresConnection:
+  def __init__(
+    self,
+    DIVERNAME: str,
+    USERNAME: str,
+    PASSWORD: str,
+    HOST: str,
+    DATABASE: str,
+    DECLARATIVE_BASE: DeclarativeBase
+  ):
+    # Programmatic way to generate db url.
+    self.__postgre_url__ = URL.create(
+      drivername=DIVERNAME,
+      username=USERNAME,
+      password=PASSWORD,
+      host=HOST,
+      database=DATABASE
+    )
+    # Just engine, not actual connection. Connection opened only when using Session or connection. 
+    self.engine = create_async_engine(
+      self.__postgre_url__,
+      echo=True
       )
-      self._connection = connection
-      return connection
-    except psycopg2.OperationalError as op_error:
-      raise DatabaseError(f"An error occurred while connecting to the Postgres database.") from op_error
-  
-  def get_cursor(self) -> psycopg2.extensions.cursor:
-    assert self._connection, "Connection not established"
-    return self._connection.cursor()
+    # async_sessionmaker: a factory for new AsyncSession objects.
+    # expire_on_commit - don't expire objects after transaction commit
+    self.async_session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
+    self.Base = DECLARATIVE_BASE
+    self.__connection_initiated__ = False
 
+  async def init_db(self):
+    """Create tables in database if not exists."""
+    if self.__connection_initiated__:
+      raise DeclarativeBase("Connection already initialized.")
+    self.__connection_initiated__ = True
+    async with self.engine.begin() as connection:
+      await connection.run_sync(self.Base.metadata.create_all)
+    return self
+  
+  def get_session(self) -> async_sessionmaker[AsyncSession]:
+    """ Returns session object. Not connection."""
+    session = self.async_session_factory()
+    return session

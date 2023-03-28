@@ -9,7 +9,8 @@ class DatabaseBase:
 
 class PostgresDatabaseConfig(DatabaseBase):
   try:
-    USER = os.environ["POSTGRES_USER"]
+    DRIVER = "postgresql+asyncpg" # constant, this driver used for async sqlalchemy
+    USERNAME = os.environ["POSTGRES_USER"]
     PORT = os.environ["POSTGRES_PORT"]
     HOST = os.environ["POSTGRES_HOST"]
     PASSWORD = os.environ["POSTGRES_PASSWORD"]
