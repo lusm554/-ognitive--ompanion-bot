@@ -4,8 +4,8 @@ from sqlalchemy.orm import DeclarativeBase
 
 # TODO: as in `get_session` actual connection does not open, need to find where we can catch connection errors.
 
-class PostgresConnection:
-  """Singleton object of connection to postgres database."""
+class DBConnection:
+  """Singleton object of connection to database."""
   __instance__ = None
   __is_db_inited__ = False
 
@@ -23,10 +23,10 @@ class PostgresConnection:
     """
     def decorator(func):
       def wrapper(*args, **kwargs):
-        if exist and PostgresConnection.__instance__ is not None:
-          raise Exception("Instance of Postgres DB connection already exists.")
-        if nexist and PostgresConnection.__instance__ is None:
-          raise Exception("Instance of Postgres DB connection doesn't exists.")
+        if exist and DBConnection.__instance__ is not None:
+          raise Exception("Instance of DBConnection already exists.")
+        if nexist and DBConnection.__instance__ is None:
+          raise Exception("Instance of DBConnection doesn't exists.")
         return func(*args, **kwargs)
       return wrapper
     return decorator
@@ -42,9 +42,9 @@ class PostgresConnection:
     DECLARATIVE_BASE: DeclarativeBase
   ):
     print("CONNECTION TO DATABASE111111111111111111111111111111111111111111111111111111111111111") # REMOVE 
-    PostgresConnection.__instance__ = self
+    DBConnection.__instance__ = self
     # Programmatic way to generate db url.
-    self.__postgre_url__ = URL.create(
+    self.__connection_url__ = URL.create(
       drivername=DIVERNAME,
       username=USERNAME,
       password=PASSWORD,
@@ -53,7 +53,7 @@ class PostgresConnection:
     )
     # Just engine, not actual connection. Connection opened only when using Session or connection. 
     self.engine = create_async_engine(
-      self.__postgre_url__,
+      self.__connection_url__,
       echo=True
     )
     # async_sessionmaker: a factory for new AsyncSession objects.
@@ -63,9 +63,9 @@ class PostgresConnection:
 
   async def init_db(self):
     """Create tables in database if not exists."""
-    if PostgresConnection.__is_db_inited__:
+    if DBConnection.__is_db_inited__:
       raise Exception("Database already initialized.")
-    PostgresConnection.__is_db_inited__ = True
+    DBConnection.__is_db_inited__ = True
     async with self.engine.begin() as connection:
       await connection.run_sync(self.Base.metadata.create_all)
     return self
@@ -74,11 +74,11 @@ class PostgresConnection:
   @__check_if_instance__(nexist=True)
   def get_instance():
     """Returns instance of this class."""
-    return PostgresConnection.__instance__
+    return DBConnection.__instance__
 
   @staticmethod
   @__check_if_instance__(nexist=True)
   def get_session() -> async_sessionmaker[AsyncSession]:
     """Returns session object. Not connection."""
-    session = PostgresConnection.__instance__.async_session_factory()
+    session = DBConnection.__instance__.async_session_factory()
     return session

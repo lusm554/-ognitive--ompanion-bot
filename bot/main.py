@@ -3,9 +3,6 @@ import asyncio
 import logging
 from database import DB
 
-# получаем тут единый пул подключений к базе из database
-# отдаем это подключение контроллеру, который уже отдает его модели, которая отдает его ДАО, который использует его для запросов к базе
-
 # try:
 #   bot = ChatBotControllerCLI()
 #   bot.handle_message("/selectusers")

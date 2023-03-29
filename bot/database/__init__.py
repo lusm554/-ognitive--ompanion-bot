@@ -1,13 +1,9 @@
 from config import PostgresDatabaseConfig
-from .connection import PostgresConnection
+from .connection import DBConnection
 from .data_model import Base 
 
-# получаем тут подключение
-# инитиализируем базу данных тут
-# отдаем подключение в маин
-
 # Getting DB object, not actual connection.
-DB = PostgresConnection(
+DB = DBConnection(
   DIVERNAME=PostgresDatabaseConfig.DRIVER,
   USERNAME=PostgresDatabaseConfig.USERNAME,
   PASSWORD=PostgresDatabaseConfig.PASSWORD,
