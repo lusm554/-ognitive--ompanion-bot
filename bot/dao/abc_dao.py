@@ -1,31 +1,16 @@
-class UserDAO():
-  def __init__(self, db_connection):
-    self.conn = db_connection
-  
-  def create_user(self, telegram_id, username, nickname, phone_number, created_at, updated_at):
-    with self.conn.cursor() as cur:
-      cur.execute("""
-        INSERT INTO USERS (telegram_id, username, nickname, phone_number, created_at, updated_at) values
-        (%s, %s, %s, %s, %s, %s)
-      """, (telegram_id, username, nickname, phone_number, created_at, updated_at))
-      self.conn.commit()
-  
-  def get_users(self):
-    with self.conn.cursor() as cur:
-      cur.execute("""
-        select *
-        from users
-      """)
-      return cur.fetchall()
+# Тут будут запросы к моделям sqlalchemy
+from database import DB
 
-class BoardDAO():
-  ...
+async def select_user(async_session):
+  from sqlalchemy import text
+  # Select User
+  user_stmt = text("select * from public.user")
+  async with async_session as session, session.begin():
+    result = await session.execute(user_stmt)
+    usr = result.scalars()
+    print(usr)
 
-class BoardPermissionDAO():
-  ...
+async def test_connection():
+  session = DB.get_session()
+  await select_user(session)
 
-class ListDAO():
-  ...
-
-class TaskDAO():
-  ...
