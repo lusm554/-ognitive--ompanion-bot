@@ -14,6 +14,7 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
   await update.message.reply_text(text="There should be help command.")
 
 async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  """Sends a message with three inline buttons attached."""
   keyboard = [
     [
       InlineKeyboardButton("Option 1", callback_data="1"),
@@ -24,16 +25,30 @@ async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE):
   reply_markup = InlineKeyboardMarkup(keyboard)
   await update.message.reply_text("Please choose:", reply_markup=reply_markup)
 
-if __name__ == '__main__':
+async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
+  """Parses the CallbackQuery and updates the message text."""
+  query = update.callback_query
+  # CallbackQueries need to be answered, even if no notification to the user is needed
+  # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+  await query.answer()
+  await query.edit_message_text(text=f"Selected option: {query.data}")
+
+def main():
   import os
   token = os.getenv("TELEGRAM_TOKEN")
   application = ApplicationBuilder().token(token).build()
   
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
+
   help_handler = CommandHandler('help', help)
   application.add_handler(help_handler)
+
   todolist_handler = CommandHandler('todolist', todolist)
   application.add_handler(todolist_handler) 
+  application.add_handler(CallbackQueryHandler(button))
 
   application.run_polling()
+
+if __name__ == '__main__':
+  main()
