@@ -34,43 +34,66 @@ TASKS = [
 ]
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-  await update.message.reply_text("Hello! Now bot active.")  
+  """Starts an interaction with the user. Adds it to the user database."""
+  logger.info("Someone run start command.")
+  await update.message.reply_text("Hello! Now bot active.")
+
+async def commandnotfound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  """Starts an interaction with the user. Adds it to the user database."""
+  logger.info("Command not found.")
+  await update.message.reply_text("Command not found.")
 
 async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
+  pagination = [
+    InlineKeyboardButton(text="Next page", callback_data="next"),
+    InlineKeyboardButton(text="Previous page", callback_data="prev"),
+  ]
   keyboard_menu = [
-    *[[InlineKeyboardButton(text=task["name"], callback_data="1"+task["id"])] for task in TASKS]
-    # add keys for pagination
+    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS],
+    pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
   ]
   reply_markup = InlineKeyboardMarkup(keyboard_menu)
-  await update.message.reply_text("Your todo list:", reply_markup=reply_markup)
+  if update.callback_query: # Prompt same text & keyboard as `todolist` does but not as new message
+    query = update.callback_query
+    await query.answer()
+    logger.info("Continue conversation from start, sends tasks list.")
+    await query.edit_message_text("Your list of tasks. Click on one of them to continue.", reply_markup=reply_markup)
+  else:
+    logger.info("Starting conversation, sends tasks list.")
+    await update.message.reply_text("Your list of tasks. Click on one of them to continue.", reply_markup=reply_markup)
   return LIST_TASKS
 
 async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Handles a click on a task. Shows task interaction buttons to the user."""
+  logger.info("User clicked task button. Shows task operations.")
   query = update.callback_query
-  # await query.edit_message_text(text=f"Selected option: {query.data}")
-  await query.answer()
-  selected_task_id = query.data[1:]
+  await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  selected_task_id = query.data
   selected_task = list(filter(lambda tsk: str(tsk["id"]) == selected_task_id, TASKS))[0]
   keyboard_menu = [
-    [InlineKeyboardButton(text=selected_task["name"], callback_data="2"+selected_task["id"])],
+    # [InlineKeyboardButton(text=selected_task["name"], callback_data=selected_task["id"])],
     [
-      InlineKeyboardButton(text="Edit", callback_data="2"+"edit"),
-      InlineKeyboardButton(text="Delete", callback_data="2"+"deleta"),
+      InlineKeyboardButton(text="Back", callback_data="back"+selected_task_id),
+      InlineKeyboardButton(text="Complete", callback_data="complete"+selected_task_id),
+      InlineKeyboardButton(text="Edit", callback_data="edit"+selected_task_id),
+      InlineKeyboardButton(text="Delete", callback_data="delete"+selected_task_id),
     ]
   ]
   reply_markup = InlineKeyboardMarkup(keyboard_menu)
   await query.edit_message_text(
-    text="Operations on specific task:", reply_markup=reply_markup
+    text=f"{selected_task['name']}", reply_markup=reply_markup
   )
   return PARTICULAR_TASK
 
-async def task_operations_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def task_back_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Returns users to previous state, to list of tasks."""
+  logger.info("running task_back_callback")
   query = update.callback_query
-  # CallbackQueries need to be answered, even if no notification to the user is needed
-  # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
-  await query.answer()
-  await query.edit_message_text(text=f"Selected option: {query.data}")
-  return ConversationHandler.END 
+  await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  await query.edit_message_text(text=f"Back to list of tasks for: {query.data}")
+  return LIST_TASKS
+  return ConversationHandler.END
 
 def main() -> None:
   """Run the bot."""
@@ -82,8 +105,11 @@ def main() -> None:
   conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("todolist", todolist)],
     states={
-      LIST_TASKS: [CallbackQueryHandler(task_button_callback, pattern="^" + str(1) + "*")],
-      PARTICULAR_TASK: [CallbackQueryHandler(task_operations_callback, pattern="^" + str(2) + "*")]
+      LIST_TASKS: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
+      PARTICULAR_TASK: [
+        CallbackQueryHandler(todolist, pattern="^" + "back" + "*"),
+        CallbackQueryHandler(task_back_callback), # re: starts from "back"
+      ]
       # START_ROUTES: [
       #     CallbackQueryHandler(one, pattern="^" + str(ONE) + "$"),
       #     CallbackQueryHandler(two, pattern="^" + str(TWO) + "$"),
@@ -95,7 +121,7 @@ def main() -> None:
       #     CallbackQueryHandler(end, pattern="^" + str(TWO) + "$"),
       # ],
     },
-    fallbacks=[CommandHandler("start", start)],
+    fallbacks=[CommandHandler("commandnotfound", commandnotfound)],
   )
   application.add_handler(conversation_handler)
 
