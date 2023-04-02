@@ -1,6 +1,6 @@
 import logging
 
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, ReplyKeyboardRemove
 from telegram.ext import (
   Application,
   CallbackQueryHandler,
@@ -54,14 +54,15 @@ async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
   ]
   reply_markup = InlineKeyboardMarkup(keyboard_menu)
+  msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
   if update.callback_query: # Prompt same text & keyboard as `todolist` does but not as new message
     query = update.callback_query
     await query.answer()
     logger.info("Continue conversation from start, sends tasks list.")
-    await query.edit_message_text("Your list of tasks. Click on one of them to continue.", reply_markup=reply_markup)
+    await query.edit_message_text(msg, reply_markup=reply_markup)
   else:
     logger.info("Starting conversation, sends tasks list.")
-    await update.message.reply_text("Your list of tasks. Click on one of them to continue.", reply_markup=reply_markup)
+    await update.message.reply_text(msg, reply_markup=reply_markup)
   return LIST_TASKS
 
 async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -95,6 +96,15 @@ async def task_back_callback(update: Update, context: ContextTypes.DEFAULT_TYPE)
   return LIST_TASKS
   return ConversationHandler.END
 
+async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Cancels and ends the conversation."""
+  user = update.message.from_user
+  logger.info("User %s canceled the conversation.", user.first_name)
+  await update.message.reply_text(
+    "Bye! I hope we can talk again some day.", reply_markup=ReplyKeyboardRemove()
+  )
+  return ConversationHandler.END
+
 def main() -> None:
   """Run the bot."""
   # Create the Application and pass it your bot's token.
@@ -121,7 +131,7 @@ def main() -> None:
       #     CallbackQueryHandler(end, pattern="^" + str(TWO) + "$"),
       # ],
     },
-    fallbacks=[CommandHandler("commandnotfound", commandnotfound)],
+    fallbacks=[CommandHandler("cancel", cancel)],
   )
   application.add_handler(conversation_handler)
 
