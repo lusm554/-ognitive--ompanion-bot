@@ -4,9 +4,11 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, ReplyKe
 from telegram.ext import (
   Application,
   CallbackQueryHandler,
+  MessageHandler,
   CommandHandler,
   ContextTypes,
   ConversationHandler,
+  filters
 )
 
 # Enable logging
@@ -16,7 +18,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # States of machine
-LIST_TASKS, PARTICULAR_TASK = range(2)
+ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
+
+# TEMP STORE TASK BEFORE EDITING
+# TODO: find better solution for this. For example make state GLOBAL
+TASK4EDITING = None
 
 TASKS = [
   {
@@ -52,11 +58,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   logger.info("Someone run start command.")
   await update.message.reply_text("Hello! Now bot active.")
 
-async def commandnotfound(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-  """Starts an interaction with the user. Adds it to the user database."""
-  logger.info("Command not found.")
-  await update.message.reply_text("Command not found.")
-
 async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
   reply_markup = get_start_keyboard()
@@ -69,7 +70,7 @@ async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   else:
     logger.info("Starting conversation, sends tasks list.")
     await update.message.reply_text(msg, reply_markup=reply_markup)
-  return LIST_TASKS
+  return ALL_TASKS_STATE
 
 async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Handles a click on a task. Shows task interaction buttons to the user."""
@@ -91,7 +92,7 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   await query.edit_message_text(
     text=f"{selected_task['name']}", reply_markup=reply_markup
   )
-  return PARTICULAR_TASK
+  return PARTICULAR_TASK_STATE
 
 async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Closes the user's task."""
@@ -109,6 +110,26 @@ async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   # logic of deleting task here
   await query.edit_message_text(text=f"Your task deleted.")
   logger.info("Users deleted task. Conversation ended.")
+  return ConversationHandler.END
+
+async def task_request_edit_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Requests new name of the user's task."""
+  global TASK4EDITING
+  query = update.callback_query
+  await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  selected_task_id = query.data[len("edit"):]
+  TASK4EDITING = list(filter(lambda tsk: str(tsk["id"]) == selected_task_id, TASKS))[0]
+  await query.edit_message_text(text=f"Send me new name of task `{TASK4EDITING['name']}`.")
+  logger.info("User request editing task.")
+  return EDIT_TASK_STATE
+
+async def task_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Edits name of the user's task."""
+  global TASK4EDITING
+  new_name = update.message.text
+  await update.message.reply_text(f"The name of task changed from `{TASK4EDITING['name']}` to `{new_name}`.")
+  TASK4EDITING = None
+  logger.info("User edited task. Conversation ended.")
   return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -130,12 +151,14 @@ def main() -> None:
   conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("todolist", todolist)],
     states={
-      LIST_TASKS: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
-      PARTICULAR_TASK: [
+      ALL_TASKS_STATE: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
+      PARTICULAR_TASK_STATE: [
         CallbackQueryHandler(todolist, pattern="^" + "back" + "*"),
         CallbackQueryHandler(task_complete_callback, pattern="^" + "complete" + "*"), # re: starts from "back"
         CallbackQueryHandler(task_delete_callback, pattern="^" + "delete" + "*"), # re: starts from "back"
-      ]
+        CallbackQueryHandler(task_request_edit_callback, pattern="^" + "edit" + "*"), # re: starts from "back"
+      ],
+      EDIT_TASK_STATE: [MessageHandler(filters.TEXT & (~filters.COMMAND), task_edit)]
       # START_ROUTES: [
       #     CallbackQueryHandler(one, pattern="^" + str(ONE) + "$"),
       #     CallbackQueryHandler(two, pattern="^" + str(TWO) + "$"),
