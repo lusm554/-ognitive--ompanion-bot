@@ -16,7 +16,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # States of machine
-LIST_TASKS, PARTICULAR_TASK, END = range(3)
+LIST_TASKS, PARTICULAR_TASK = range(2)
 
 TASKS = [
   {
@@ -33,6 +33,20 @@ TASKS = [
   },
 ]
 
+# TODO: Consider returning keyboard with keys DONE and CONTINUE after end states like `complete`, `delete` etc.
+
+def get_start_keyboard():
+  pagination = [
+    InlineKeyboardButton(text="Next page", callback_data="next"),
+    InlineKeyboardButton(text="Previous page", callback_data="prev"),
+  ]
+  keyboard_menu = [
+    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS],
+    pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
+  ]
+  keyboard = InlineKeyboardMarkup(keyboard_menu)
+  return keyboard
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Starts an interaction with the user. Adds it to the user database."""
   logger.info("Someone run start command.")
@@ -45,15 +59,7 @@ async def commandnotfound(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
-  pagination = [
-    InlineKeyboardButton(text="Next page", callback_data="next"),
-    InlineKeyboardButton(text="Previous page", callback_data="prev"),
-  ]
-  keyboard_menu = [
-    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS],
-    pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
-  ]
-  reply_markup = InlineKeyboardMarkup(keyboard_menu)
+  reply_markup = get_start_keyboard()
   msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
   if update.callback_query: # Prompt same text & keyboard as `todolist` does but not as new message
     query = update.callback_query
@@ -87,13 +93,22 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   )
   return PARTICULAR_TASK
 
-async def task_back_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-  """Returns users to previous state, to list of tasks."""
-  logger.info("running task_back_callback")
+async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Closes the user's task."""
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
-  await query.edit_message_text(text=f"Back to list of tasks for: {query.data}")
-  return LIST_TASKS
+  # logic of closing task here
+  await query.edit_message_text(text=f"Your task closed.")
+  logger.info("Users completed task. Conversation ended.")
+  return ConversationHandler.END
+
+async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Deletes the user's task."""
+  query = update.callback_query
+  await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  # logic of deleting task here
+  await query.edit_message_text(text=f"Your task deleted.")
+  logger.info("Users deleted task. Conversation ended.")
   return ConversationHandler.END
 
 async def cancel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -118,7 +133,8 @@ def main() -> None:
       LIST_TASKS: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
       PARTICULAR_TASK: [
         CallbackQueryHandler(todolist, pattern="^" + "back" + "*"),
-        CallbackQueryHandler(task_back_callback), # re: starts from "back"
+        CallbackQueryHandler(task_complete_callback, pattern="^" + "complete" + "*"), # re: starts from "back"
+        CallbackQueryHandler(task_delete_callback, pattern="^" + "delete" + "*"), # re: starts from "back"
       ]
       # START_ROUTES: [
       #     CallbackQueryHandler(one, pattern="^" + str(ONE) + "$"),
