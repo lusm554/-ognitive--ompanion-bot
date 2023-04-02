@@ -1,30 +1,84 @@
-import psycopg2 
-from exceptions import DatabaseError
+from sqlalchemy import URL
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.orm import DeclarativeBase
 
-class PostgresDB:
-  def __init__(self, user, password, dbname, host, port):
-    self.password = password
-    self.host = host
-    self.port = port
-    self.user = user
-    self.dbname = dbname
-    self._connection = None
+# TODO: as in `get_session` actual connection does not open, need to find where we can catch connection errors.
 
-  def get_connection(self) -> psycopg2.extensions.connection:
-    try:
-      connection = psycopg2.connect(
-        password=self.password,
-        host=self.host,
-        port=self.port,
-        user=self.user,
-        dbname=self.dbname
-      )
-      self._connection = connection
-      return connection
-    except psycopg2.OperationalError as op_error:
-      raise DatabaseError(f"An error occurred while connecting to the Postgres database.") from op_error
+class DBConnection:
+  """Singleton object of connection to database."""
+  __instance__ = None
+  __is_db_inited__ = False
+
+  @staticmethod
+  def __check_if_instance__(exist: bool = False, nexist: bool = False):
+    """
+    Decorator that check whether instance of this class exists or not.
+
+    Parameters
+    ----------
+      exist : bool
+        Flag for checking the existence of a class instance.
+      nexist : bool
+        Flag to check if the class instance does not exist
+    """
+    def decorator(func):
+      def wrapper(*args, **kwargs):
+        if exist and DBConnection.__instance__ is not None:
+          raise Exception("Instance of DBConnection already exists.")
+        if nexist and DBConnection.__instance__ is None:
+          raise Exception("Instance of DBConnection doesn't exists.")
+        return func(*args, **kwargs)
+      return wrapper
+    return decorator
+
+  @__check_if_instance__(exist=True)
+  def __init__(
+    self,
+    DIVERNAME: str,
+    USERNAME: str,
+    PASSWORD: str,
+    HOST: str,
+    DATABASE: str,
+    DECLARATIVE_BASE: DeclarativeBase
+  ):
+    print("CONNECTION TO DATABASE111111111111111111111111111111111111111111111111111111111111111") # REMOVE 
+    DBConnection.__instance__ = self
+    # Programmatic way to generate db url.
+    self.__connection_url__ = URL.create(
+      drivername=DIVERNAME,
+      username=USERNAME,
+      password=PASSWORD,
+      host=HOST,
+      database=DATABASE
+    )
+    # Just engine, not actual connection. Connection opened only when using Session or connection. 
+    self.engine = create_async_engine(
+      self.__connection_url__,
+      echo=True
+    )
+    # async_sessionmaker: a factory for new AsyncSession objects.
+    # expire_on_commit - don't expire objects after transaction commit
+    self.async_session_factory = async_sessionmaker(self.engine, expire_on_commit=False)
+    self.Base = DECLARATIVE_BASE
+
+  async def init_db(self):
+    """Create tables in database if not exists."""
+    if DBConnection.__is_db_inited__:
+      raise Exception("Database already initialized.")
+    DBConnection.__is_db_inited__ = True
+    async with self.engine.begin() as connection:
+      await connection.run_sync(self.Base.metadata.create_all)
+    return self
   
-  def get_cursor(self) -> psycopg2.extensions.cursor:
-    assert self._connection, "Connection not established"
-    return self._connection.cursor()
+  @staticmethod
+  @__check_if_instance__(nexist=True)
+  def get_instance():
+    """Returns instance of this class."""
+    return DBConnection.__instance__
 
+  @staticmethod
+  @__check_if_instance__(nexist=True)
+  def get_session() -> async_sessionmaker[AsyncSession]:
+    """Returns session object. Not connection."""
+    session = DBConnection.__instance__.async_session_factory()
+    return session

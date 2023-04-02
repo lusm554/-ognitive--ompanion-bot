@@ -1,1 +1,1 @@
-from .abc_dao import UserDAO
+from .abc_dao import test_connection
