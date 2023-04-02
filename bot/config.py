@@ -4,6 +4,18 @@ import os
 
 dotenv.load_dotenv()
 
+class TelegramConfig:
+  try:
+    TELEGRAM_TOKEN = os.environ["TELEGRAM_TOKEN"]
+  except KeyError as keyname:
+    raise MissingEnvironmentVariable(f"Variable {keyname} not found.")
+
+class LoggingConfig:
+  try:
+    LOG_LEVEL = os.environ["LOG_LEVEL"]
+  except KeyError as keyname:
+    raise MissingEnvironmentVariable(f"Variable {keyname} not found.")
+
 class DatabaseBase:
   DBNAME = "postgres"
 

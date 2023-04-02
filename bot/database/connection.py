@@ -41,7 +41,6 @@ class DBConnection:
     DATABASE: str,
     DECLARATIVE_BASE: DeclarativeBase
   ):
-    print("CONNECTION TO DATABASE111111111111111111111111111111111111111111111111111111111111111") # REMOVE 
     DBConnection.__instance__ = self
     # Programmatic way to generate db url.
     self.__connection_url__ = URL.create(
