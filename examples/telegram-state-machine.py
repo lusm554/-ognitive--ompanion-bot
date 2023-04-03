@@ -60,11 +60,11 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   logger.info("Someone run start command.")
   await update.message.reply_text("Hello! Now bot active.")
 
-async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
   reply_markup = get_start_keyboard()
   msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
-  if update.callback_query: # Prompt same text & keyboard as `todolist` does but not as new message
+  if update.callback_query: # Prompt same text & keyboard as `listtasks` does but not as new message
     query = update.callback_query
     await query.answer()
     logger.info("Continue conversation from start, sends tasks list.")
@@ -151,11 +151,11 @@ def main() -> None:
   application = Application.builder().token(token).build()
 
   conversation_handler = ConversationHandler(
-    entry_points=[CommandHandler("todolist", todolist)],
+    entry_points=[CommandHandler("listtasks", listtasks)],
     states={
       ALL_TASKS_STATE: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
       PARTICULAR_TASK_STATE: [
-        CallbackQueryHandler(todolist, pattern="^" + "back" + "*"),
+        CallbackQueryHandler(listtasks, pattern="^" + "back" + "*"),
         CallbackQueryHandler(task_complete_callback, pattern="^" + "complete" + "*"), # re: starts from "back"
         CallbackQueryHandler(task_delete_callback, pattern="^" + "delete" + "*"), # re: starts from "back"
         CallbackQueryHandler(task_request_edit_callback, pattern="^" + "edit" + "*"), # re: starts from "back"
@@ -176,8 +176,8 @@ def main() -> None:
   )
   application.add_handler(conversation_handler)
 
-  # todolistt_handler = CommandHandler('todolist', todolist)
-  # application.add_handler(todolistt_handler)
+  # listtaskst_handler = CommandHandler('listtasks', listtasks)
+  # application.add_handler(listtaskst_handler)
 
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
