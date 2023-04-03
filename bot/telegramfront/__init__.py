@@ -1,1 +1,1 @@
-from .main import telegram_main
+from .main import main as telegram_main

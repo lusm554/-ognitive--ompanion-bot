@@ -14,4 +14,4 @@ async def main():
   await telegram_main(TelegramConfig.TELEGRAM_TOKEN)
 
 if __name__ == "__main__":
-  asyncio.run(main())
+  telegram_main()
