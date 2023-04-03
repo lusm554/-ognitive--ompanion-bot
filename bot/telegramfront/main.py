@@ -1,53 +1,41 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, CallbackQueryHandler
+from telegram import Update
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 # TODO: as best practice, add /start, /help commands. Add unknown command handler 
-# TODO: use state machine bot works
 # TODO: add commands to BotFather for menu
+# TODO: move CommandHandler to decorator
+# TODO: add logging 
 
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  """Start command. First command that user send. This command sends greeting message."""
-  await update.message.reply_text(text="I'm a bot, please talk to me!")
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  """Starts an interaction with the user. Adds it to the user database."""
+  await update.message.reply_text("Hello! I'm todo bot. See more in menu or by /help command.")
 
-async def help(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  """Returns a help message, like a short text about what bot can do and a list of commands."""
-  await update.message.reply_text(text="There should be help command.")
+async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  """Shows a help message, like a short text about what bot can do and a list of commands."""
+  await update.message.reply_text("<Here should be help message>")
 
-async def todolist(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  """Sends a message with three inline buttons attached."""
-  keyboard = [
-    [
-      InlineKeyboardButton("Option 1", callback_data="1"),
-      InlineKeyboardButton("Option 2", callback_data="2"),
-    ],
-    [InlineKeyboardButton("Option 3", callback_data="3")],
-  ]
-  reply_markup = InlineKeyboardMarkup(keyboard)
-  await update.message.reply_text("Please choose:", reply_markup=reply_markup)
-
-async def button(update: Update, context: ContextTypes.DEFAULT_TYPE):
-  """Parses the CallbackQuery and updates the message text."""
-  query = update.callback_query
-  # CallbackQueries need to be answered, even if no notification to the user is needed
-  # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
-  await query.answer()
-  await query.edit_message_text(text=f"Selected option: {query.data}")
+async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  """Tell user about called command does not exist."""
+  await update.message.reply_text("This command don't exist. Use menu or /help command for info.")
 
 def main():
+  # REMOVE
   import os
   token = os.getenv("TELEGRAM_TOKEN")
+  # REMOVE
+
   application = ApplicationBuilder().token(token).build()
-  
+
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
 
   help_handler = CommandHandler('help', help)
   application.add_handler(help_handler)
 
-  todolist_handler = CommandHandler('todolist', todolist)
-  application.add_handler(todolist_handler) 
-  application.add_handler(CallbackQueryHandler(button))
-
+  # This handler must be added last. If it added before the other handlers, it would be triggered before the CommandHandlers.
+  unknown_handler = MessageHandler(filters.COMMAND, unknown)
+  application.add_handler(unknown_handler)
+   
   application.run_polling()
 
 if __name__ == '__main__':
