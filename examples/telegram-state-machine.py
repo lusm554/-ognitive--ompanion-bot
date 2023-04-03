@@ -26,20 +26,20 @@ ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
 # TODO: find better solution for this. For example make state GLOBAL
 TASK4EDITING = None
 
-TASKS = [
-  {
+TASKS = {
+  "1": {
     "name": "Оформить подписку",
     "id": "1"
   },
-  {
+  "2": {
     "name": "Купить продукты на ужин",
     "id": "2"
   },
-  {
+  "3": {
     "name": "Сдать реферат",
     "id": "3"
   },
-]
+}
 
 # TODO: Consider returning keyboard with keys DONE and CONTINUE after end states like `complete`, `delete` etc.
 
@@ -49,7 +49,7 @@ def get_start_keyboard():
     InlineKeyboardButton(text="Previous page", callback_data="prev"),
   ]
   keyboard_menu = [
-    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS],
+    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS.values()],
     pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
   ]
   keyboard = InlineKeyboardMarkup(keyboard_menu)
@@ -80,7 +80,7 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data
-  selected_task = list(filter(lambda tsk: str(tsk["id"]) == selected_task_id, TASKS))[0]
+  selected_task = TASKS.get(selected_task_id)
   keyboard_menu = [
     # [InlineKeyboardButton(text=selected_task["name"], callback_data=selected_task["id"])],
     [
@@ -100,7 +100,9 @@ async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_T
   """Closes the user's task."""
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  selected_task_id = query.data[len("complete"):]
   # logic of closing task here
+  del TASKS[selected_task_id]
   await query.edit_message_text(text=f"Your task closed.")
   logger.info("Users completed task. Conversation ended.")
   return ConversationHandler.END
@@ -109,7 +111,9 @@ async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   """Deletes the user's task."""
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
+  selected_task_id = query.data[len("delete"):]
   # logic of deleting task here
+  del TASKS[selected_task_id]
   await query.edit_message_text(text=f"Your task deleted.")
   logger.info("Users deleted task. Conversation ended.")
   return ConversationHandler.END
@@ -120,7 +124,7 @@ async def task_request_edit_callback(update: Update, context: ContextTypes.DEFAU
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("edit"):]
-  TASK4EDITING = list(filter(lambda tsk: str(tsk["id"]) == selected_task_id, TASKS))[0]
+  TASK4EDITING = TASKS.get(selected_task_id) 
   await query.edit_message_text(text=f"Send me new name of task `{TASK4EDITING['name']}`.")
   logger.info("User request editing task.")
   return EDIT_TASK_STATE
@@ -129,6 +133,7 @@ async def task_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Edits name of the user's task."""
   global TASK4EDITING
   new_name = update.message.text
+  TASKS[TASK4EDITING["id"]]["name"] = new_name
   await update.message.reply_text(f"The name of task changed from `{TASK4EDITING['name']}` to `{new_name}`.")
   TASK4EDITING = None
   logger.info("User edited task. Conversation ended.")
