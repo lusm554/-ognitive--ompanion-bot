@@ -19,7 +19,10 @@ logger = logging.getLogger(__name__)
 
 # TODO: add name of task in last, ended operation
 
-# States of machine
+# States of machine of adding task
+WAITING_TASK_INPUT_STATE = range(1)
+
+# States of machine of tasks list
 ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
 
 # TEMP STORE TASK BEFORE EDITING
@@ -31,17 +34,40 @@ TASKS = {
     "name": "Оформить подписку",
     "id": "1"
   },
-  "2": {
-    "name": "Купить продукты на ужин",
-    "id": "2"
-  },
-  "3": {
-    "name": "Сдать реферат",
-    "id": "3"
-  },
+  # "2": {
+  #   "name": "Купить продукты на ужин",
+  #   "id": "2"
+  # },
+  # "3": {
+  #   "name": "Сдать реферат",
+  #   "id": "3"
+  # },
 }
 
 # TODO: Consider returning keyboard with keys DONE and CONTINUE after end states like `complete`, `delete` etc.
+
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+  """Starts an interaction with the user. Adds it to the user database."""
+  logger.info("Someone run start command.")
+  await update.message.reply_text("Hello! Now bot active.")
+
+async def addtask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  msg = "Send me the name of the task you want to add.\n\nSend /cancel at any time to stop our convesation."
+  logger.info("Start command addtask")
+  await update.message.reply_text(msg)
+  return WAITING_TASK_INPUT_STATE
+
+async def handletaskinput(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  new_task_name = update.message.text
+  new_task_id = max(map(int, [*TASKS.keys(), 0]))+1
+  TASKS[str(new_task_id)] = {
+    "name": new_task_name,
+    "id": str(new_task_id)
+  }
+  msg = f"Your task `{new_task_name}` added.\n\nSee it through /listtasks."
+  await update.message.reply_text(msg)
+  logger.info(f"Added new task {new_task_name}")
+  return ConversationHandler.END
 
 def get_start_keyboard():
   pagination = [
@@ -54,11 +80,6 @@ def get_start_keyboard():
   ]
   keyboard = InlineKeyboardMarkup(keyboard_menu)
   return keyboard
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-  """Starts an interaction with the user. Adds it to the user database."""
-  logger.info("Someone run start command.")
-  await update.message.reply_text("Hello! Now bot active.")
 
 async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
@@ -155,7 +176,16 @@ def main() -> None:
   token = os.getenv("TELEGRAM_TOKEN") 
   application = Application.builder().token(token).build()
 
-  conversation_handler = ConversationHandler(
+  addtask_conversation_handler = ConversationHandler(
+    entry_points=[CommandHandler("addtask", addtask)],
+    states={
+      WAITING_TASK_INPUT_STATE: [MessageHandler(filters.TEXT & (~filters.COMMAND), handletaskinput)],
+    },
+    fallbacks=[CommandHandler("cancel", cancel)],
+  )
+  application.add_handler(addtask_conversation_handler)
+
+  listtasks_conversation_handler = ConversationHandler(
     entry_points=[CommandHandler("listtasks", listtasks)],
     states={
       ALL_TASKS_STATE: [CallbackQueryHandler(task_button_callback)], # todo: add here pagination callbacks
@@ -179,10 +209,7 @@ def main() -> None:
     },
     fallbacks=[CommandHandler("cancel", cancel)],
   )
-  application.add_handler(conversation_handler)
-
-  # listtaskst_handler = CommandHandler('listtasks', listtasks)
-  # application.add_handler(listtaskst_handler)
+  application.add_handler(listtasks_conversation_handler)
 
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
