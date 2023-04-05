@@ -18,6 +18,7 @@ async def handletaskinput(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
   #   "name": new_task_name,
   #   "id": str(new_task_id)
   # }
+  print(context.bot_data) # using controller to manipulate data
   msg = f"Your task `{new_task_name}` added.\n\nSee it through /listtasks."
   await update.message.reply_text(msg)
   return ConversationHandler.END

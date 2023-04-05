@@ -27,6 +27,7 @@ def main():
   # REMOVE
 
   application = ApplicationBuilder().token(token).build()
+  application.bot_data["controller"] = {"name": "controller"} # imagine that there will be initialized controller
 
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
