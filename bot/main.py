@@ -2,26 +2,37 @@ import asyncio
 from database import DB
 from config import TelegramConfig
 from telegramfront import telegram_main
+from dao import UserDAO
 
-async def initdb():
+
+async def infinite_loop():
+  try:
+    while 1:
+      await asyncio.sleep(1)
+  except (KeyboardInterrupt, SystemExit):
+    pass
+
+async def initdb(_):
   await DB.init_db()
 
-async def main():
-  # global DB
+async def some_task():
+  d = UserDAO()
+  await d.read()
 
-  # running telegram bot
+def main():
   telegram_application = telegram_main(TelegramConfig.TELEGRAM_TOKEN)
   telegram_application.bot_data["controller"] = 1 # init here controller for bot command handlers
-
-  # starting bot in separate task
-  bot_task = asyncio.create_task(telegram_application.run_polling())
-  # starting the database initialization in a separate task
-  db_task  = asyncio.create_task(initdb())
-
-  # wait for both tasks to complete
-  await asyncio.gather(bot_task, db_task)
+  telegram_application.job_queue.run_once(initdb, when=0)
+  telegram_application.run_polling()
+  # async with telegram_application as application: # Calls `initialize` and `shutdown` 
+  #   await application.start()
+  #   await application.updater.start_polling()
+  #   await initdb()
+  #   await some_task()
+  #   # here should some ligc that keeps event loop running
+  #   await infinite_loop()
+  #   await application.updater.stop()
+  #   await application.stop()
 
 if __name__ == "__main__":
-  loop = asyncio.get_event_loop()
-  loop.run_until_complete(main())
-  loop.close()
+  main()
