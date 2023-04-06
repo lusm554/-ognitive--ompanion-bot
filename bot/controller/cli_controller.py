@@ -1,11 +1,8 @@
-from model.cli_model import ChatBotModelCLI
-from view.cli_view import ChatBotViewCLI
+from dao import UserDAO
 
 class ChatBotControllerCLI:
   def __init__(self):
-    self.model = ChatBotModelCLI()
-    self.view = ChatBotViewCLI()
+    self.dao = UserDAO()
 
-  def handle_message(self, message):
-    response = self.model.process_message(message)
-    self.view.display_message(response)
+  async def handle_message(self):
+    await self.dao.read()

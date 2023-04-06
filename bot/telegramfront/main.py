@@ -10,6 +10,7 @@ from .conversations import ADDTASK_CONVERSATION_HANDLER, LISTTASKS_CONVERSATION_
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Starts an interaction with the user. Adds it to the user database."""
+  await context.bot_data["controller"].handle_message()
   await update.message.reply_text("Hello! I'm todo bot. See more in menu or by /help command.")
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -20,14 +21,8 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Tell user about called command does not exist."""
   await update.message.reply_text("This command don't exist. Use menu or /help command for info.")
 
-def main():
-  # REMOVE
-  import os
-  token = os.getenv("TELEGRAM_TOKEN")
-  # REMOVE
-
+def main(token: str):
   application = ApplicationBuilder().token(token).build()
-  application.bot_data["controller"] = {"name": "controller"} # imagine that there will be initialized controller
 
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)
@@ -42,8 +37,4 @@ def main():
   # This handler must be added last. If it added before the other handlers, it would be triggered before the CommandHandlers.
   unknown_handler = MessageHandler(filters.COMMAND, unknown)
   application.add_handler(unknown_handler)
-   
-  application.run_polling()
-
-if __name__ == '__main__':
-  main()
+  return application   
