@@ -17,6 +17,9 @@ class TelegramController:
       "first_name": telegram_user.first_name,
       "username": telegram_user.username
     }
+    if await self.model.is_user_exist(user_obj["telegram_id"]):
+      msg = self.view.start_user_already_exists()
+      return msg
     await self.model.add_user(user_obj)
     msg = self.view.start_msg()
     return msg

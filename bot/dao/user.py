@@ -1,5 +1,8 @@
 from .daobase import DAOBase
 from database import User
+from sqlalchemy import select
+
+# TODO: it seems not good to use this arch model->dao. where flexibliyu
 
 class UserDAO(DAOBase):
   def __init__(self):
@@ -15,8 +18,13 @@ class UserDAO(DAOBase):
       )
       session.add(user)
 
-  async def read(self):
-    pass
+  async def read(self, key: int):
+    stmt = select(User).where(User.telegram_id == key)
+    async with self.session as session, session.begin():
+      result = await session.execute(stmt)
+      result = result.first()
+      return result
+
 
   async def update(self, primarykey, data):
     pass

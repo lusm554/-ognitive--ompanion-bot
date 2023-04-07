@@ -8,3 +8,7 @@ class Model:
 
   async def add_user(self, user_obj: dict):
     await self.dao.create(user_obj)
+  
+  async def is_user_exist(self, telegram_id: int):
+    user = await self.dao.read(telegram_id)
+    return True if user is not None else False 
