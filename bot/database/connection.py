@@ -1,6 +1,7 @@
 from sqlalchemy import URL
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from sqlalchemy.orm import DeclarativeBase
+from exceptions import DatabaseError
 
 # TODO: as in `get_session` actual connection does not open, need to find where we can catch connection errors.
 
@@ -53,7 +54,7 @@ class DBConnection:
     # Just engine, not actual connection. Connection opened only when using Session or connection. 
     self.engine = create_async_engine(
       self.__connection_url__,
-      echo=True
+      echo=True,
     )
     # async_sessionmaker: a factory for new AsyncSession objects.
     # expire_on_commit - don't expire objects after transaction commit
@@ -62,12 +63,15 @@ class DBConnection:
 
   async def init_db(self):
     """Create tables in database if not exists."""
-    if DBConnection.__is_db_inited__:
-      raise Exception("Database already initialized.")
-    DBConnection.__is_db_inited__ = True
-    async with self.engine.begin() as connection:
-      await connection.run_sync(self.Base.metadata.create_all)
-    return self
+    try:
+      if DBConnection.__is_db_inited__:
+        raise Exception("Database already initialized.")
+      DBConnection.__is_db_inited__ = True
+      async with self.engine.begin() as connection:
+        await connection.run_sync(self.Base.metadata.create_all)
+      return self
+    except OSError as error:
+      raise DatabaseError("Connection to database failed.") from error
   
   @staticmethod
   @__check_if_instance__(nexist=True)
