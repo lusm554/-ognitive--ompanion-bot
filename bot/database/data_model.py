@@ -20,12 +20,12 @@ class User(Base):
   """
   __tablename__ = "user"
   id: Mapped[int] = mapped_column(primary_key=True)
-  telegram_id: Mapped[int]
-  nickname: Mapped[str]
-  fullname: Mapped[str]
+  telegram_id: Mapped[str]
+  username: Mapped[str]
+  first_name: Mapped[str]
   tasks: Mapped[List["Task"]] = relationship(back_populates="user", lazy="raise")
   def __repr__(self) -> str:
-    return f"User(id={self.id!r}, telegram_id={self.telegram_id!r}, nickname={self.nickname!r}, fullname={self.fullname!r})"
+    return f"User(id={self.id!r}, telegram_id={self.telegram_id!r}, username={self.username!r}, first_name={self.first_name!r})"
 
 class Task(Base):
   """

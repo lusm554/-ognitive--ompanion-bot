@@ -1,6 +1,7 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from .conversations import ADDTASK_CONVERSATION_HANDLER, LISTTASKS_CONVERSATION_HANDLER
+from utils import simpledict2doted
 
 # TODO: as best practice, add /start, /help commands. Add unknown command handler 
 # TODO: add separate command: addtask, deletetask, edittask
@@ -10,8 +11,9 @@ from .conversations import ADDTASK_CONVERSATION_HANDLER, LISTTASKS_CONVERSATION_
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Starts an interaction with the user. Adds it to the user database."""
-  await context.bot_data["controller"].handle_message()
-  await update.message.reply_text("Hello! I'm todo bot. See more in menu or by /help command.")
+  user = update.message.from_user
+  msg = await context.bot_data.controller.start_cmd_handler(user)
+  await update.message.reply_text(msg)
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Shows a help message, like a short text about what bot can do and a list of commands."""
@@ -23,6 +25,7 @@ async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 def main(token: str):
   application = ApplicationBuilder().token(token).build()
+  application.bot_data = simpledict2doted(application.bot_data)
 
   start_handler = CommandHandler('start', start)
   application.add_handler(start_handler)

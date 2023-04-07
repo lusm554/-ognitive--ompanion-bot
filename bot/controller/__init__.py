@@ -1,1 +1,1 @@
-from .cli_controller import ChatBotControllerCLI
+from .telegram_controller import TelegramController
