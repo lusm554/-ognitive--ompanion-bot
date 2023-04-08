@@ -4,6 +4,7 @@ from sqlalchemy import ForeignKey
 from typing import List
 
 # TODO: check for proper 'load strategy' for relationship in context of async operations.
+# TODO: add created_at and updated_at
 
 class Base(DeclarativeBase):
   """
@@ -23,7 +24,7 @@ class User(Base):
   telegram_id: Mapped[str]
   username: Mapped[str]
   first_name: Mapped[str]
-  tasks: Mapped[List["Task"]] = relationship(back_populates="user", lazy="raise")
+  # tasks: Mapped[List["Task"]] = relationship(back_populates="user", lazy="raise")
   def __repr__(self) -> str:
     return f"User(id={self.id!r}, telegram_id={self.telegram_id!r}, username={self.username!r}, first_name={self.first_name!r})"
 
@@ -33,11 +34,9 @@ class Task(Base):
   """
   __tablename__ = "task"
   id: Mapped[int] = mapped_column(primary_key=True)
-  user_id = mapped_column(ForeignKey("user.id"))
-  task_number: Mapped[int]
+  telegram_user_id: Mapped[str]
   name: Mapped[str]
-  description: Mapped[str]
   status: Mapped[str]
-  user: Mapped[User] = relationship(back_populates="tasks", lazy="raise")
+  # user: Mapped[User] = relationship(back_populates="tasks", lazy="raise")
   def __repr__(self) -> str:
     return f"Task(id={self.id!r}, user_id={self.user_id!r}, task_number={self.task_number!r}, description={self.description!r}, status={self.status!r})"

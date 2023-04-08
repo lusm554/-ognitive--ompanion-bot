@@ -6,20 +6,15 @@ from .commonhandlers import cancel
 WAITING_TASK_INPUT_STATE = range(1)
 
 async def addtask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+  """Entry point to conversation of adding task."""
   msg = "Send me the name of the task you want to add.\n\nSend /cancel at any time to stop our convesation."
   await update.message.reply_text(msg)
   return WAITING_TASK_INPUT_STATE
 
 async def handletaskinput(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
-  new_task_name = update.message.text
-  # OPERATION ON ADDING TASK HERE
-  # new_task_id = max(map(int, [*TASKS.keys(), 0]))+1
-  # TASKS[str(new_task_id)] = {
-  #   "name": new_task_name,
-  #   "id": str(new_task_id)
-  # }
-  print(context.bot_data) # using controller to manipulate data
-  msg = f"Your task `{new_task_name}` added.\n\nSee it through /listtasks."
+  """Callback processing input from user for new task."""
+  update_message = update.message
+  msg = await context.bot_data.controller.addtask_cmd_handler(update_message)
   await update.message.reply_text(msg)
   return ConversationHandler.END
 
