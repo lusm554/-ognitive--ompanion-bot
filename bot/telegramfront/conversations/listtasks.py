@@ -7,10 +7,12 @@ from telegram.ext import (
   ConversationHandler,
   filters
 )
+import json
 from .commonhandlers import cancel
 
 # TODO: add paggination for tasks list
 # TODO: add cancle button to list of tasks
+# TODO: proper handle errors in serialization/deserialization
 
 # States of machine of tasks list
 ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
@@ -30,10 +32,30 @@ TASKS = {
   },
 }
 
+def serializetask(task: dict) -> str:
+  """Serializes task dict to json for for transport over the network."""
+  try:
+    _task = {
+      "id": str(task["id"]),
+      "name": task["name"]
+    }
+    serialized = json.dumps(_task, ensure_ascii=False) # ensure_ascii=False - don't escape non-ASCII characters. Using for ru language.
+    return serialized
+  except Exception as error:
+    raise Exception("Error while seralize task obj.") from error
+
+def deserializetask(task: str) -> dict:
+  """Deserializes task json to dict for using like py object."""
+  try:
+    _task = json.loads(task)
+    return _task
+  except Exception as error:
+    raise Exception("Error while deserialize task obj.") from error
+
 def get_start_keyboard(list_of_tasks):
   keyboard_menu = [
     *[
-      [InlineKeyboardButton(text=task["name"], callback_data=task["id"])] # using [button] to indicate that there is only one button in this `row`
+      [InlineKeyboardButton(text=task["name"], callback_data=serializetask(task))] # using [button] to indicate that there is only one button in this `row`
       for task in list_of_tasks
     ],
   ]
@@ -42,8 +64,7 @@ def get_start_keyboard(list_of_tasks):
 
 async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
-  # get list of tasks
-  user = update.message.from_user
+  user = (update.callback_query or update.message).from_user # think it's not the best practice.
   list_of_tasks = await context.bot_data.controller.listtasks_cmd_handler(user)
   reply_markup = get_start_keyboard(list_of_tasks)
   msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
@@ -59,10 +80,9 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   """Handles a click on a task. Shows task interaction buttons to the user."""
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
-  selected_task_id = query.data
-  selected_task = TASKS.get(selected_task_id)
+  selected_task_obj = deserializetask(query.data)
+  selected_task_id = selected_task_obj["id"]
   keyboard_menu = [
-    # [InlineKeyboardButton(text=selected_task["name"], callback_data=selected_task["id"])],
     [
       InlineKeyboardButton(text="Back", callback_data="back"+selected_task_id),
       InlineKeyboardButton(text="Complete", callback_data="complete"+selected_task_id),
@@ -71,9 +91,8 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     ]
   ]
   reply_markup = InlineKeyboardMarkup(keyboard_menu)
-  await query.edit_message_text(
-    text=f"{selected_task['name']}", reply_markup=reply_markup
-  )
+  msg = f"{selected_task_obj['name']}"
+  await query.edit_message_text(text=msg, reply_markup=reply_markup)
   return PARTICULAR_TASK_STATE
 
 async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
@@ -81,9 +100,11 @@ async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_T
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("complete"):]
+  print(selected_task_id)
   # logic of closing task here
-  del TASKS[selected_task_id]
-  await query.edit_message_text(text=f"Your task closed.")
+  # del TASKS[selected_task_id]
+  msg = f"Your task closed."
+  await query.edit_message_text(text=msg)
   return ConversationHandler.END
 
 async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
