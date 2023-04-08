@@ -100,10 +100,7 @@ async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_T
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("complete"):]
-  print(selected_task_id)
-  # logic of closing task here
-  # del TASKS[selected_task_id]
-  msg = f"Your task closed."
+  msg = await context.bot_data.controller.closetask_cmd_handler(selected_task_id)
   await query.edit_message_text(text=msg)
   return ConversationHandler.END
 

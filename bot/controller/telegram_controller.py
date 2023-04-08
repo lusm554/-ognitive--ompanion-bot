@@ -5,6 +5,7 @@ from view import View
 import telegram # for type notations
 
 # connects together mode and view
+# TODO: make all operations atomic
 
 class TelegramController:
   def __init__(self):
@@ -34,7 +35,8 @@ class TelegramController:
       "status": "todo"
     }
     await self.task_model.add_task(task_obj)
-    return self.view.add_task_msg(task_obj["name"])
+    msg = self.view.add_task_msg(task_obj["name"])
+    return msg
   
   async def listtasks_cmd_handler(self, telegram_user: telegram.User) -> list:
     telegram_user_id = str(telegram_user.id)
@@ -44,3 +46,8 @@ class TelegramController:
       for task in tasks
     ]
     return tasks
+
+  async def closetask_cmd_handler(self, task_id: str) -> str:
+    closed_task = await self.task_model.close_task(task_id)
+    msg = self.view.close_task_msg(closed_task.name)
+    return msg

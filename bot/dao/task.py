@@ -27,8 +27,14 @@ class TaskDAO(DAOBase):
       result = list(result)
       return result
 
-  async def update(self, primarykey, data):
-    pass
+  async def update(self, key: str, data: dict):
+    stmt = select(Task).where(Task.id == int(key))
+    async with self.session as session, session.begin():
+      result = await session.execute(stmt)
+      task = result.scalars().one()
+      task.status = data["status"]
+      await session.commit()
+      return task
 
   async def delete(self, primarykey):
     pass

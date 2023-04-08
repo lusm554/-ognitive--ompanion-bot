@@ -15,3 +15,7 @@ class View:
   def add_task_msg(self, taskname: str) -> str:
     """Returns a message of adding new task."""
     return f"Your task `{taskname}` added.\n\nSee it through /listtasks."
+  
+  def close_task_msg(self, taskname) -> str:
+    """Returns a message about closed task."""
+    return f"Your task `{taskname}` closed."
