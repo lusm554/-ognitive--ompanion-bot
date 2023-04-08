@@ -54,7 +54,7 @@ class DBConnection:
     # Just engine, not actual connection. Connection opened only when using Session or connection. 
     self.engine = create_async_engine(
       self.__connection_url__,
-      echo=True,
+      # echo=True,
     )
     # async_sessionmaker: a factory for new AsyncSession objects.
     # expire_on_commit - don't expire objects after transaction commit

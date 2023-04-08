@@ -26,9 +26,20 @@ class TaskModel:
     tasks = await self.dao.read(telegram_user_id)
     return tasks
   
+  async def get_task(self, task_id: str) -> list:
+    task = await self.dao.readone(task_id)
+    return task
+  
   async def close_task(self, task_id: str):
     task_update_obj = {
       "status": "done"
     }
     closed_task = await self.dao.update(task_id, task_update_obj)
     return closed_task
+
+  async def update_name(self, task_id: str, new_name: str):
+    task_update_obj = {
+      "name": new_name
+    }
+    edited_task = await self.dao.update(task_id, task_update_obj)
+    return edited_task

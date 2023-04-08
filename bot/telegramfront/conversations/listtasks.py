@@ -80,7 +80,8 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   """Handles a click on a task. Shows task interaction buttons to the user."""
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
-  selected_task_obj = deserializetask(query.data)
+  serializedtask = query.data
+  selected_task_obj = deserializetask(serializedtask)
   selected_task_id = selected_task_obj["id"]
   keyboard_menu = [
     [
@@ -116,21 +117,22 @@ async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYP
 
 async def task_request_edit_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Requests new name of the user's task."""
-  global TASK4EDITING
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("edit"):]
-  TASK4EDITING = TASKS.get(selected_task_id) 
-  await query.edit_message_text(text=f"Send me new name of task `{TASK4EDITING['name']}`.")
+  msg, task_obj = await context.bot_data.controller.request_taskedit_cmd_handler(selected_task_id)
+  context.user_data["edit_task_obj"] = task_obj
+  await query.edit_message_text(text=msg)
   return EDIT_TASK_STATE
 
 async def task_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Edits name of the user's task."""
   global TASK4EDITING
   new_name = update.message.text
-  TASKS[TASK4EDITING["id"]]["name"] = new_name
-  await update.message.reply_text(f"The name of task changed from `{TASK4EDITING['name']}` to `{new_name}`.")
-  TASK4EDITING = None
+  selected_task = context.user_data["edit_task_obj"]
+  msg = await context.bot_data.controller.taskedit_cmd_handler(selected_task["id"], new_name, selected_task["name"])
+  context.user_data["edit_task_id"] = None
+  await update.message.reply_text(msg)
   return ConversationHandler.END
 
 LISTTASKS_CONVERSATION_HANDLER = ConversationHandler(

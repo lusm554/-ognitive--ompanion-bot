@@ -51,3 +51,19 @@ class TelegramController:
     closed_task = await self.task_model.close_task(task_id)
     msg = self.view.close_task_msg(closed_task.name)
     return msg
+
+  async def request_taskedit_cmd_handler(self, task_id: str) -> str:
+    task = await self.task_model.get_task(task_id)
+    task_obj = {
+      "id": task.id,
+      "telegram_user_id": task.telegram_user_id,
+      "name": task.name
+    }
+    msg = self.view.request_taskedit_msg(task.name)
+    return msg, task_obj
+
+  async def taskedit_cmd_handler(self, task_id: str, new_name: str, curr_name: str) -> str:
+    await self.task_model.update_name(task_id, new_name)
+    msg = self.view.taskedit_msg(new_name, curr_name)
+    return msg
+    

@@ -19,3 +19,11 @@ class View:
   def close_task_msg(self, taskname) -> str:
     """Returns a message about closed task."""
     return f"Your task `{taskname}` closed."
+  
+  def request_taskedit_msg(self, taskname) -> str:
+    """Returns a message about editing task."""
+    return f"Send me new name for task `{taskname}`"
+
+  def taskedit_msg(self, new_name, curr_name) -> str:
+    """Returns message about edited task."""
+    return f"The name of task changed from `{curr_name}` to `{new_name}`."
