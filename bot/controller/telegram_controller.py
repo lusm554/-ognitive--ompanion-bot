@@ -67,3 +67,7 @@ class TelegramController:
     msg = self.view.taskedit_msg(new_name, curr_name)
     return msg
     
+  async def deletetask_cmd_handler(self, task_id: str) -> str:
+    await self.task_model.delete_task(task_id)
+    msg = self.view.deletetask_msg()
+    return msg

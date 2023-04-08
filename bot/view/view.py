@@ -27,3 +27,7 @@ class View:
   def taskedit_msg(self, new_name, curr_name) -> str:
     """Returns message about edited task."""
     return f"The name of task changed from `{curr_name}` to `{new_name}`."
+
+  def deletetask_msg(self) -> str:
+    """Returns message about deleted task."""
+    return f"Your task deleted."

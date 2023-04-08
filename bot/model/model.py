@@ -43,3 +43,7 @@ class TaskModel:
     }
     edited_task = await self.dao.update(task_id, task_update_obj)
     return edited_task
+
+  async def delete_task(self, task_id: str):
+    deleted_task = await self.dao.delete(task_id)
+    return deleted_task

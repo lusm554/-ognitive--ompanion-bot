@@ -110,9 +110,8 @@ async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   query = update.callback_query
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("delete"):]
-  # logic of deleting task here
-  del TASKS[selected_task_id]
-  await query.edit_message_text(text=f"Your task deleted.")
+  msg = await context.bot_data.controller.deletetask_cmd_handler(selected_task_id) 
+  await query.edit_message_text(text=msg)
   return ConversationHandler.END
 
 async def task_request_edit_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

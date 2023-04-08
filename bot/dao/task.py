@@ -47,5 +47,11 @@ class TaskDAO(DAOBase):
       await session.commit()
       return task
 
-  async def delete(self, primarykey):
-    pass
+  async def delete(self, key: str):
+    stmt = select(Task).where(Task.id == int(key))
+    async with self.session as session, session.begin():
+      result = await session.execute(stmt)
+      task = result.scalars().one()
+      await session.delete(task)
+      await session.commit()
+      return task
