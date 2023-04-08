@@ -1,3 +1,3 @@
 #!/bin/bash
 
-grep -rnw $1 -e $2 | bat 
+grep -rnw $1 -e $2 | sort | bat
