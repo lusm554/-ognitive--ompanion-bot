@@ -21,7 +21,8 @@ async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Tell user about called command does not exist."""
-  await update.message.reply_text("This command don't exist. Use menu or /help command for info.")
+  msg = "This command don't exist. Use menu or /help command for info.\nProbably u may be in action. Use /cancle to stop it."
+  await update.message.reply_text(msg)
 
 def main(token: str):
   application = ApplicationBuilder().token(token).build()

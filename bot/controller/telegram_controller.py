@@ -35,3 +35,12 @@ class TelegramController:
     }
     await self.task_model.add_task(task_obj)
     return self.view.add_task_msg(task_obj["name"])
+  
+  async def listtasks_cmd_handler(self, telegram_user: telegram.User) -> list:
+    telegram_user_id = str(telegram_user.id)
+    tasks = await self.task_model.get_tasks(telegram_user_id)
+    tasks = [  # cast from ORM object to python dict
+      {"id": task.id, "name": task.name}
+      for task in tasks
+    ]
+    return tasks

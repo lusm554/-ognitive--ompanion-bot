@@ -21,3 +21,7 @@ class TaskModel:
   
   async def add_task(self, task_obj: dict):
     await self.dao.create(task_obj)
+
+  async def get_tasks(self, telegram_user_id: str) -> list:
+    tasks = await self.dao.read(telegram_user_id)
+    return tasks

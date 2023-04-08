@@ -9,6 +9,9 @@ from telegram.ext import (
 )
 from .commonhandlers import cancel
 
+# TODO: add paggination for tasks list
+# TODO: add cancle button to list of tasks
+
 # States of machine of tasks list
 ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
 
@@ -27,21 +30,22 @@ TASKS = {
   },
 }
 
-def get_start_keyboard():
-  pagination = [
-    InlineKeyboardButton(text="Next page", callback_data="next"),
-    InlineKeyboardButton(text="Previous page", callback_data="prev"),
-  ]
+def get_start_keyboard(list_of_tasks):
   keyboard_menu = [
-    *[[InlineKeyboardButton(text=task["name"], callback_data=task["id"])] for task in TASKS.values()],
-    pagination if len(TASKS) > 10 else [] # using pagination if tasks more than 10
+    *[
+      [InlineKeyboardButton(text=task["name"], callback_data=task["id"])] # using [button] to indicate that there is only one button in this `row`
+      for task in list_of_tasks
+    ],
   ]
   keyboard = InlineKeyboardMarkup(keyboard_menu)
   return keyboard
 
 async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
-  reply_markup = get_start_keyboard()
+  # get list of tasks
+  user = update.message.from_user
+  list_of_tasks = await context.bot_data.controller.listtasks_cmd_handler(user)
+  reply_markup = get_start_keyboard(list_of_tasks)
   msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
   if update.callback_query: # Prompt same text & keyboard as `listtasks` does but not as new message
     query = update.callback_query

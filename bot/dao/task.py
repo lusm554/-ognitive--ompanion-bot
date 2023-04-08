@@ -19,8 +19,13 @@ class TaskDAO(DAOBase):
       )
       session.add(task)
 
-  async def read(self, key: int):
-    pass
+  async def read(self, key: str):
+    stmt = select(Task).where(Task.telegram_user_id == key).where(Task.status == "todo")
+    async with self.session as session, session.begin():
+      result = await session.execute(stmt)
+      result = result.scalars()
+      result = list(result)
+      return result
 
   async def update(self, primarykey, data):
     pass

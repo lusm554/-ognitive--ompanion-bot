@@ -39,4 +39,4 @@ class Task(Base):
   status: Mapped[str]
   # user: Mapped[User] = relationship(back_populates="tasks", lazy="raise")
   def __repr__(self) -> str:
-    return f"Task(id={self.id!r}, user_id={self.user_id!r}, task_number={self.task_number!r}, description={self.description!r}, status={self.status!r})"
+    return f"Task(id={self.id!r}, telegram_user_id={self.telegram_user_id!r}, name={self.name!r}, status={self.status!r})"
