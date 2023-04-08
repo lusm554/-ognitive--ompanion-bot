@@ -17,21 +17,6 @@ from .commonhandlers import cancel
 # States of machine of tasks list
 ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
 
-TASKS = {
-  "1": {
-    "name": "Оформить подписку",
-    "id": "1"
-  },
-  "2": {
-    "name": "Купить продукты на ужин",
-    "id": "2"
-  },
-  "3": {
-    "name": "Сдать реферат",
-    "id": "3"
-  },
-}
-
 def serializetask(task: dict) -> str:
   """Serializes task dict to json for for transport over the network."""
   try:
@@ -65,9 +50,8 @@ def get_start_keyboard(list_of_tasks):
 async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Starts a conversation and shows the task to the user. Also manages pagination if necessary."""
   user = (update.callback_query or update.message).from_user # think it's not the best practice.
-  list_of_tasks = await context.bot_data.controller.listtasks_cmd_handler(user)
+  msg, list_of_tasks = await context.bot_data.controller.listtasks_cmd_handler(user)
   reply_markup = get_start_keyboard(list_of_tasks)
-  msg = "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
   if update.callback_query: # Prompt same text & keyboard as `listtasks` does but not as new message
     query = update.callback_query
     await query.answer()
@@ -92,7 +76,7 @@ async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYP
     ]
   ]
   reply_markup = InlineKeyboardMarkup(keyboard_menu)
-  msg = f"{selected_task_obj['name']}"
+  msg = await context.bot_data.controller.taskbutton_cmd_handler(selected_task_obj["name"])
   await query.edit_message_text(text=msg, reply_markup=reply_markup)
   return PARTICULAR_TASK_STATE
 

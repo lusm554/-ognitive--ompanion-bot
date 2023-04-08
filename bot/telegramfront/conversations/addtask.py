@@ -7,7 +7,7 @@ WAITING_TASK_INPUT_STATE = range(1)
 
 async def addtask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Entry point to conversation of adding task."""
-  msg = "Send me the name of the task you want to add.\n\nSend /cancel at any time to stop our convesation."
+  msg = await context.bot_data.controller.initaddtask_cmd_handler()
   await update.message.reply_text(msg)
   return WAITING_TASK_INPUT_STATE
 

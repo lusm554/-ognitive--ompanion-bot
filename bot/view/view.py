@@ -8,13 +8,36 @@ class View:
     """Returns message of first interaction with bot."""
     return "Hello! I'm todo bot. See more in menu or by /help command." 
   
+  def help_msg(self) -> str:
+    """Returns a help message, like a short text about what bot can do and a list of commands."""
+    return "<help message>"
+  
+  def unknown_msg(self) -> str:
+    """Returns message about unknown command."""
+    return "This command don't exist. Use menu or /help command for info.\nProbably u may be in action. Use /cancel to stop it."
+  
+  def cancel_msg(self) -> str:
+    """Returns message about canceled operation."""
+    return "Bye! I hope we can talk again some day."
+  
   def start_user_already_exists(self) -> str:
     """Returns a message indicating that the bot is already in use."""
     return "It looks like you are already using the bot."
   
+  def init_addtask_msg(self) -> str:
+    """Returns message of requesting data for new task."""
+    return "Send me the name of the task you want to add.\n\nSend /cancel at any time to stop our convesation."
+  
   def add_task_msg(self, taskname: str) -> str:
     """Returns a message of adding new task."""
     return f"Your task `{taskname}` added.\n\nSee it through /listtasks."
+  
+  def list_tasks_msg(self) -> str:
+    """Returns message about task list."""
+    return "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
+  
+  def taskbutton_msg(self, taskname: str) -> str:
+    return f"{taskname}"
   
   def close_task_msg(self, taskname) -> str:
     """Returns a message about closed task."""
