@@ -35,9 +35,6 @@ def main(token: str):
   help_handler = CommandHandler('help', help)
   application.add_handler(help_handler)
 
-  cancel_handler = CommandHandler('cancel', cancel)
-  application.add_handler(cancel_handler)
-
   # Adding conversations here
   application.add_handler(ADDTASK_CONVERSATION_HANDLER)
   application.add_handler(LISTTASKS_CONVERSATION_HANDLER)
