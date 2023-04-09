@@ -1,6 +1,6 @@
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
-from .conversations import ADDTASK_CONVERSATION_HANDLER, LISTTASKS_CONVERSATION_HANDLER
+from .conversations import ADDTASK_CONVERSATION_HANDLER, LISTTASKS_CONVERSATION_HANDLER, cancel
 from utils import simpledict2doted
 
 # TODO: as best practice, add /start, /help commands. Add unknown command handler 
@@ -17,11 +17,12 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 async def help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Shows a help message, like a short text about what bot can do and a list of commands."""
-  await update.message.reply_text("<Here should be help message>")
+  msg = await context.bot_data.controller.help_cmd_handler()
+  await update.message.reply_text(msg)
 
 async def unknown(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
   """Tell user about called command does not exist."""
-  msg = "This command don't exist. Use menu or /help command for info.\nProbably u may be in action. Use /cancle to stop it."
+  msg = await context.bot_data.controller.unknown_cmd_handler()
   await update.message.reply_text(msg)
 
 def main(token: str):
@@ -33,6 +34,9 @@ def main(token: str):
 
   help_handler = CommandHandler('help', help)
   application.add_handler(help_handler)
+
+  cancel_handler = CommandHandler('cancel', cancel)
+  application.add_handler(cancel_handler)
 
   # Adding conversations here
   application.add_handler(ADDTASK_CONVERSATION_HANDLER)

@@ -27,6 +27,22 @@ class TelegramController:
     msg = self.view.start_msg()
     return msg
     
+  async def help_cmd_handler(self) -> str:
+    msg = self.view.help_msg()
+    return msg
+
+  async def unknown_cmd_handler(self) -> str:
+    msg = self.view.unknown_msg()
+    return msg
+  
+  async def cancel_cmd_handler(self) -> str:
+    msg = self.view.cancel_msg()
+    return msg
+
+  async def initaddtask_cmd_handler(self) -> str:
+    msg = self.view.init_addtask_msg()
+    return msg
+
   async def addtask_cmd_handler(self, telegram_msg: telegram.Message) -> str:
     """Adds task to database on /addtask command."""
     task_obj = {
@@ -45,7 +61,13 @@ class TelegramController:
       {"id": task.id, "name": task.name}
       for task in tasks
     ]
-    return tasks
+    tasks_count = len(tasks)
+    msg = self.view.list_tasks_msg(tasks_count)
+    return msg, tasks
+  
+  async def taskbutton_cmd_handler(self, task_name: str) -> str:
+    msg = self.view.taskbutton_msg(task_name)
+    return msg
 
   async def closetask_cmd_handler(self, task_id: str) -> str:
     closed_task = await self.task_model.close_task(task_id)
