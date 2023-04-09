@@ -61,7 +61,8 @@ class TelegramController:
       {"id": task.id, "name": task.name}
       for task in tasks
     ]
-    msg = self.view.list_tasks_msg()
+    tasks_count = len(tasks)
+    msg = self.view.list_tasks_msg(tasks_count)
     return msg, tasks
   
   async def taskbutton_cmd_handler(self, task_name: str) -> str:

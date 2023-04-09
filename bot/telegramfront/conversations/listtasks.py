@@ -68,6 +68,8 @@ async def listtasks(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     await query.edit_message_text(msg, reply_markup=reply_markup)
   else:
     await update.message.reply_text(msg, reply_markup=reply_markup)
+  if len(list_of_tasks) == 0:
+    return ConversationHandler.END
   return ALL_TASKS_STATE
 
 async def task_button_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:

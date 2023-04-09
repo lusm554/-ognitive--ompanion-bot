@@ -32,8 +32,10 @@ class View:
     """Returns a message of adding new task."""
     return f"Your task `{taskname}` added.\n\nSee it through /listtasks."
   
-  def list_tasks_msg(self) -> str:
+  def list_tasks_msg(self, tasks_count: int) -> str:
     """Returns message about task list."""
+    if tasks_count == 0:
+      return "You have no tasks. Use /addtask command."
     return "Your list of tasks. Click on one of them to continue.\n\nSend /cancel at any time to stop our convesation."
   
   def taskbutton_msg(self, taskname: str) -> str:
