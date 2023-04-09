@@ -15,7 +15,7 @@ from .commonhandlers import cancel
 # TODO: proper handle errors in serialization/deserialization
 
 # States of machine of tasks list
-ALL_TASKS_STATE, PARTICULAR_TASK_STATE, EDIT_TASK_STATE = range(3)
+ALL_TASKS_STATE, PARTICULAR_TASK_STATE, AFTERACTION_TASK_STATE, EDIT_TASK_STATE = range(4)
 
 def serializetask(task: dict) -> str:
   """Serializes task dict to json for for transport over the network."""
@@ -43,6 +43,16 @@ def get_start_keyboard(list_of_tasks):
       [InlineKeyboardButton(text=task["name"], callback_data=serializetask(task))] # using [button] to indicate that there is only one button in this `row`
       for task in list_of_tasks
     ],
+  ]
+  keyboard = InlineKeyboardMarkup(keyboard_menu)
+  return keyboard
+
+def get_afteraction_keyboard():
+  keyboard_menu = [
+    [
+      InlineKeyboardButton(text="Back to tasks", callback_data="back"),
+      InlineKeyboardButton(text="We done", callback_data="cancel"),
+    ]
   ]
   keyboard = InlineKeyboardMarkup(keyboard_menu)
   return keyboard
@@ -86,8 +96,9 @@ async def task_complete_callback(update: Update, context: ContextTypes.DEFAULT_T
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("complete"):]
   msg = await context.bot_data.controller.closetask_cmd_handler(selected_task_id)
-  await query.edit_message_text(text=msg)
-  return ConversationHandler.END
+  keyboard_menu = get_afteraction_keyboard()
+  await query.edit_message_text(text=msg, reply_markup=keyboard_menu)
+  return AFTERACTION_TASK_STATE
 
 async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Deletes the user's task."""
@@ -95,8 +106,9 @@ async def task_delete_callback(update: Update, context: ContextTypes.DEFAULT_TYP
   await query.answer() # CallbackQueries need to be answered, even if no notification to the user is needed. Some clients may have trouble otherwise.
   selected_task_id = query.data[len("delete"):]
   msg = await context.bot_data.controller.deletetask_cmd_handler(selected_task_id) 
-  await query.edit_message_text(text=msg)
-  return ConversationHandler.END
+  keyboard_menu = get_afteraction_keyboard()
+  await query.edit_message_text(text=msg, reply_markup=keyboard_menu)
+  return AFTERACTION_TASK_STATE
 
 async def task_request_edit_callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   """Requests new name of the user's task."""
@@ -115,8 +127,9 @@ async def task_edit(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
   selected_task = context.user_data["edit_task_obj"]
   msg = await context.bot_data.controller.taskedit_cmd_handler(selected_task["id"], new_name, selected_task["name"])
   context.user_data["edit_task_id"] = None
-  await update.message.reply_text(msg)
-  return ConversationHandler.END
+  keyboard_menu = get_afteraction_keyboard()
+  await update.message.reply_text(msg, reply_markup=keyboard_menu)
+  return AFTERACTION_TASK_STATE
 
 LISTTASKS_CONVERSATION_HANDLER = ConversationHandler(
   entry_points=[CommandHandler("listtasks", listtasks)],
@@ -129,6 +142,10 @@ LISTTASKS_CONVERSATION_HANDLER = ConversationHandler(
       CallbackQueryHandler(task_request_edit_callback, pattern="^" + "edit" + "*"), # re: starts from "back"
     ],
     EDIT_TASK_STATE: [MessageHandler(filters.TEXT & (~filters.COMMAND), task_edit)],
+    AFTERACTION_TASK_STATE: [
+      CallbackQueryHandler(listtasks, pattern="^" + "back" + "*"),
+      CallbackQueryHandler(cancel, pattern="^" + "cancel" + "*"),
+    ],
   },
   fallbacks=[CommandHandler("cancel", cancel)],
 )
