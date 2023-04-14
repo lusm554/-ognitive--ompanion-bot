@@ -1,5 +1,6 @@
 # Config
 .env
+.coverage
 
 # notes
 *.txt
