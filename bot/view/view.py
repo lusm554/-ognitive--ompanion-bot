@@ -10,7 +10,12 @@ class View:
   
   def help_msg(self) -> str:
     """Returns a help message, like a short text about what bot can do and a list of commands."""
-    return "<help message>"
+    start_cmd = "/start - starts an interaction with the bot\n"
+    addtask_cmd = "/addtask - adds task to todo list\n"
+    listtasks_cmd = "/listtasks - shows the list of your tasks\n"
+    cancel_cmd = "/cancel - cancels the current operation\n"
+    help_cmd = "/help - short text about what both can do and a list of commands\n"
+    return "The list of tasks:\n" + start_cmd + addtask_cmd + listtasks_cmd + cancel_cmd + help_cmd
   
   def unknown_msg(self) -> str:
     """Returns message about unknown command."""
